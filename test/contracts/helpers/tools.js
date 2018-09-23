@@ -24,7 +24,7 @@ export async function expectThrow(promise) {
 /**
  * @const BigNumber Pointer to web3.BigNumber
  */
-const BigNumber = web3.BigNumber;
+const {BigNumber} = web3;
 export {BigNumber};
 
 /**

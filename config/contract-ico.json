@@ -1,0 +1,5 @@
+{
+    "tests": [
+        "test/contracts/token/MioToken.js"
+    ]
+}

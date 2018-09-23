@@ -4,7 +4,7 @@
  * @author Validity Labs AG <info@validitylabs.org>
  */
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.24;  // solhint-disable-line
 
 import "../../node_modules/openzeppelin-solidity/contracts/token/ERC20/BasicToken.sol";
 

@@ -5,7 +5,7 @@
  * @author Validity Labs AG <info@validitylabs.org>
  */
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.24;  // solhint-disable-line
 
 import "../../node_modules/openzeppelin-solidity/contracts/token/ERC20/BurnableToken.sol";
 import "../../node_modules/openzeppelin-solidity/contracts/token/ERC20/MintableToken.sol";
@@ -31,13 +31,13 @@ contract SnapshotToken is BurnableToken, MintableToken, PausableToken {
     * contract when the balance changes the block number that the change
     * occurred is also included in the map
     */
-    mapping (address => Checkpoint[]) internal balances;
+    mapping (address => Checkpoint[]) public balances;
 
     // Tracks the history of the `totalSupply` of the token
-    Checkpoint[] internal totalSupplyHistory;
+    Checkpoint[] public totalSupplyHistory;
 
     // `creationBlock` is the block number when the token was created
-    uint256 internal creationBlock;
+    uint256 public creationBlock;
 
     ////////////////
     // Constructor
@@ -167,7 +167,7 @@ contract SnapshotToken is BurnableToken, MintableToken, PausableToken {
         }
 
         // Do not allow transfer to 0x0 or the token contract itself
-        require((_to != 0) && (_to != address(this)));
+        require((_to != address(0)) && (_to != address(this)));
 
         // If the amount being transfered is more than the balance of the
         // account the transfer throws
