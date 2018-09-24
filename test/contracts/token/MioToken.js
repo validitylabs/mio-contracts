@@ -182,6 +182,7 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
                             const tx = await mioTokenInstance.transfer(recipient3, 0, {from: recipient1});
                             const events = getEvents(tx);
 
+                            events.Transfer[0].from.should.be.equal(recipient1);
                             events.Transfer[0].to.should.be.equal(recipient3);
                             events.Transfer[0].value.should.be.bignumber.equal(0);
                         });
@@ -280,8 +281,8 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
             });
 
             context('when spender has enough approved balance', async () => {
-                it('transfers the requested amount', async () => {
-                    await mioTokenInstance.transferFrom(owner, initialOwner, amount, {from: anotherAccount});
+                it('transfers the requested amount and emits event', async () => {
+                    const tx = await mioTokenInstance.transferFrom(owner, initialOwner, amount, {from: anotherAccount});
                     const {blockNumber} = web3.eth;
 
                     (await mioTokenInstance.allowance(owner, anotherAccount)).should.be.bignumber.equal(0);
@@ -291,7 +292,74 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
 
                     (await mioTokenInstance.balanceOfAt(owner, blockNumber - 1)).should.be.bignumber.equal(totalSupply.sub(amount.mul(2)));
                     (await mioTokenInstance.balanceOfAt(initialOwner, blockNumber - 1)).should.be.bignumber.equal(0);
+
+                    const events = getEvents(tx);
+                    events.Transfer[0].from.should.be.equal(owner);
+                    events.Transfer[0].to.should.be.equal(initialOwner);
+                    events.Transfer[0].value.should.be.bignumber.equal(amount);
                 });
+            });
+        });
+    });
+
+    describe('increaseApproval', async () => {
+        before(async () => {
+            await mioTokenInstance.approve(anotherAccount, amount, {from: owner});
+        });
+
+        context('when paused', async () => {
+            before(async () => {
+                await mioTokenInstance.pause({from: owner});
+            });
+
+            it('fails', async () => {
+                await expectThrow(mioTokenInstance.increaseApproval(anotherAccount, 1, {from: owner}));
+            });
+        });
+
+        context('when unpaused', async () => {
+            before(async () => {
+                await mioTokenInstance.unpause({from: owner});
+            });
+
+            it('increases allowance and emits event', async () => {
+                const tx = await mioTokenInstance.increaseApproval(anotherAccount, 1, {from: owner});
+
+                (await mioTokenInstance.allowance(owner, anotherAccount)).should.be.bignumber.equal(amount.add(1));
+
+                const events = getEvents(tx);
+                events.Approval[0].owner.should.be.equal(owner);
+                events.Approval[0].spender.should.be.equal(anotherAccount);
+                events.Approval[0].value.should.be.bignumber.equal(amount.add(1));
+            });
+        });
+    });
+
+    describe('decreaseApproval', async () => {
+        context('when paused', async () => {
+            before(async () => {
+                await mioTokenInstance.pause({from: owner});
+            });
+
+            it('fails', async () => {
+                await expectThrow(mioTokenInstance.decreaseApproval(anotherAccount, 1, {from: owner}));
+            });
+        });
+
+        context('when unpaused', async () => {
+            before(async () => {
+                await mioTokenInstance.unpause({from: owner});
+            });
+
+            it('decreases allowance and emits event', async () => {
+                const tx = await mioTokenInstance.decreaseApproval(anotherAccount, 1, {from: owner});
+
+                (await mioTokenInstance.allowance(owner, anotherAccount)).should.be.bignumber.equal(amount);
+
+                const events = getEvents(tx);
+                events.Approval[0].owner.should.be.equal(owner);
+                events.Approval[0].spender.should.be.equal(anotherAccount);
+                events.Approval[0].value.should.be.bignumber.equal(amount);
             });
         });
     });
