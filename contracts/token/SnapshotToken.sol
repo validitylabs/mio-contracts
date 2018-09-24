@@ -79,7 +79,6 @@ contract SnapshotToken is BurnableToken, MintableToken, PausableToken {
     function transferFrom(address _from, address _to, uint256 _amount) public whenNotPaused returns (bool) {
         require(allowed[_from][msg.sender] >= _amount);
 
-        // @TODO: makes more sense to check the _from balance before decreasing allowance
         allowed[_from][msg.sender] -= _amount;
         doTransfer(_from, _to, _amount);
         return true;
@@ -92,7 +91,7 @@ contract SnapshotToken is BurnableToken, MintableToken, PausableToken {
     /// @param _amount The amount of tokens to be approved for transfer
     /// @return True if the approval was successful
     function approve(address _spender, uint256 _amount) public whenNotPaused returns (bool) {
-        require((_amount == 0) || (allowed[msg.sender][_spender] == 0));
+        require((allowed[msg.sender][_spender] == 0) || (_amount == 0));
         allowed[msg.sender][_spender] = _amount;
         emit Approval(msg.sender, _spender, _amount);
         return true;

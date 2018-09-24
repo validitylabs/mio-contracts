@@ -25,22 +25,4 @@ contract MultiSendToken is BasicToken {
             transfer(beneficiaries[i], amounts[i]);
         }
     }
-
-    /// @notice Send to multiple addresses using a byte32 array which
-    ///  includes the address and the amount.
-    ///  Addresses and amounts are stored in a packed bytes32 array
-    ///  Address is stored in the 20 most significant bytes
-    ///  The address is retrieved by bitshifting 96 bits to the right
-    ///  Amount is stored in the 12 least significant bytes
-    ///  The amount is retrieved by taking the 96 least significant bytes
-    ///  and converting them into an unsigned integer
-    /// @param addressesAndAmounts Bitwise packed array of addresses
-    ///  and amounts
-    function multiSendTightlyPacked(bytes32[] addressesAndAmounts) public {
-        for (uint256 i = 0; i < addressesAndAmounts.length; i++) {
-            address to = address(addressesAndAmounts[i] >> 96);
-            uint amount = uint(uint96(addressesAndAmounts[i]));
-            transfer(to, amount);
-        }
-    }
 }
