@@ -19,6 +19,7 @@ require('chai')
 contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, anotherAccount]) => {
     const totalSupply = new BigNumber(100);
     const amount = new BigNumber(10);
+    const zeroAddress = '0x0000000000000000000000000000000000000000';
 
     // Provide a newly deployed mioTokenInstance for every test case
     let mioTokenInstance;
@@ -72,8 +73,11 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
         });
 
         context('when called by the owner account', async () => {
-            it('mints requested amount and emit events', async () => {
-                const tx = await mioTokenInstance.mint(owner, totalSupply, {from: owner});
+            let tx;
+            before(async () => {
+                tx = await mioTokenInstance.mint(owner, totalSupply, {from: owner});
+            });
+            it('mints requested amount', async () => {
                 const {blockNumber} = web3.eth;
 
                 (await mioTokenInstance.totalSupply()).should.be.bignumber.equal(totalSupply);
@@ -83,12 +87,19 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
                 (await mioTokenInstance.balanceOf(owner)).should.be.bignumber.equal(totalSupply);
                 (await mioTokenInstance.balanceOfAt(owner, blockNumber)).should.be.bignumber.equal(totalSupply);
                 (await mioTokenInstance.balanceOfAt(owner, blockNumber - 1)).should.be.bignumber.equal(0);
+            });
 
-                const events = getEvents(tx);
-                events.Mint[0].to.should.be.equal(owner);
-                events.Mint[0].amount.should.be.bignumber.equal(totalSupply);
-                events.Transfer[0].to.should.be.equal(owner);
-                events.Transfer[0].value.should.be.bignumber.equal(totalSupply);
+            it('emits a mint event', async () => {
+                const mintEvents = getEvents(tx, 'Mint');
+                mintEvents[0].to.should.be.equal(owner);
+                mintEvents[0].amount.should.be.bignumber.equal(totalSupply);
+            });
+
+            it('emits a transfer event', async () => {
+                const transferEvents = getEvents(tx, 'Transfer');
+                transferEvents[0].from.should.be.equal(zeroAddress);
+                transferEvents[0].to.should.be.equal(owner);
+                transferEvents[0].value.should.be.bignumber.equal(totalSupply);
             });
         });
     });
@@ -150,10 +161,12 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
         });
 
         context('when unpaused', async () => {
+            before(async () => {
+                await mioTokenInstance.unpause({from: owner});
+            });
+
             context('when the sender hasn\'t enough balance', async () => {
                 it('fails', async () => {
-                    await mioTokenInstance.unpause({from: owner});
-
                     await expectThrow(mioTokenInstance.transfer(recipient3, amount, {from: anotherAccount}));
                     (await mioTokenInstance.balanceOf(recipient3)).should.be.bignumber.equal(0);
                 });
@@ -161,11 +174,9 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
 
             context('when the sender has enough balance', async () => {
                 context('when recipient is zero address', async () => {
-                    const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
-
                     it('fails', async () => {
-                        await expectThrow(mioTokenInstance.transfer(ZERO_ADDRESS, amount, {from: recipient1}));
-                        (await mioTokenInstance.balanceOf(ZERO_ADDRESS)).should.be.bignumber.equal(0);
+                        await expectThrow(mioTokenInstance.transfer(zeroAddress, amount, {from: recipient1}));
+                        (await mioTokenInstance.balanceOf(zeroAddress)).should.be.bignumber.equal(0);
                     });
                 });
 
@@ -177,20 +188,24 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
                 });
 
                 context('when recipient is different to zero address and the token contract', async () => {
-                    context('when amount is 0', async () => {
-                        it('emits Transfer event', async () => {
+                    context('when amount is zero', async () => {
+                        it('emits a transfer event', async () => {
                             const tx = await mioTokenInstance.transfer(recipient3, 0, {from: recipient1});
-                            const events = getEvents(tx);
+                            const transferEvents = getEvents(tx, 'Transfer');
 
-                            events.Transfer[0].from.should.be.equal(recipient1);
-                            events.Transfer[0].to.should.be.equal(recipient3);
-                            events.Transfer[0].value.should.be.bignumber.equal(0);
+                            transferEvents[0].from.should.be.equal(recipient1);
+                            transferEvents[0].to.should.be.equal(recipient3);
+                            transferEvents[0].value.should.be.bignumber.equal(0);
                         });
                     });
 
-                    context('when amount is different to 0', async () => {
-                        it('transfers amount', async () => {
-                            await mioTokenInstance.transfer(recipient3, amount, {from: recipient1});
+                    context('when amount is different to zero', async () => {
+                        let tx;
+                        before(async () => {
+                            tx = await mioTokenInstance.transfer(recipient3, amount, {from: recipient1});
+                        });
+
+                        it('transfers requested amount', async () => {
                             const {blockNumber} = web3.eth;
 
                             (await mioTokenInstance.balanceOfAt(recipient1, blockNumber)).should.be.bignumber.equal(0);
@@ -198,6 +213,14 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
 
                             (await mioTokenInstance.balanceOfAt(recipient1, blockNumber - 1)).should.be.bignumber.equal(amount);
                             (await mioTokenInstance.balanceOfAt(recipient3, blockNumber - 1)).should.be.bignumber.equal(0);
+                        });
+
+                        it('emits a transfer event', async () => {
+                            const transferEvents = getEvents(tx, 'Transfer');
+
+                            transferEvents[0].from.should.be.equal(recipient1);
+                            transferEvents[0].to.should.be.equal(recipient3);
+                            transferEvents[0].value.should.be.bignumber.equal(amount);
                         });
                     });
                 });
@@ -215,13 +238,20 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
         });
 
         context('when unpaused', async () => {
-            context('when spender has no approved amount', async () => {
+            before(async () => {
+                await mioTokenInstance.unpause({from: owner});
+            });
+            context('when spender has no previous approved amount', async () => {
+                let tx;
+                before(async () => {
+                    tx = await mioTokenInstance.approve(anotherAccount, 1, {from: recipient3});
+                });
+
                 it('approves the requested amount', async () => {
-                    await mioTokenInstance.unpause({from: owner});
-                    const tx = await mioTokenInstance.approve(anotherAccount, 1, {from: recipient3});
-
                     (await mioTokenInstance.allowance(recipient3, anotherAccount)).should.be.bignumber.equal(1);
+                });
 
+                it('emits an approval event', async () => {
                     const events = getEvents(tx);
                     events.Approval[0].owner.should.be.equal(recipient3);
                     events.Approval[0].spender.should.be.equal(anotherAccount);
@@ -239,15 +269,20 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
                 });
 
                 context('when new amount is zero', async () => {
-                    it('replaces the approved amount with zero and emits event', async () => {
-                        const tx = await mioTokenInstance.approve(anotherAccount, 0, {from: recipient3});
+                    let tx;
+                    before(async () => {
+                        tx = await mioTokenInstance.approve(anotherAccount, 0, {from: recipient3});
+                    });
 
+                    it('replaces the approved amount with zero', async () => {
                         (await mioTokenInstance.allowance(recipient3, anotherAccount)).should.be.bignumber.equal(0);
+                    });
 
-                        const events = getEvents(tx);
-                        events.Approval[0].owner.should.be.equal(recipient3);
-                        events.Approval[0].spender.should.be.equal(anotherAccount);
-                        events.Approval[0].value.should.be.bignumber.equal(0);
+                    it('emits an approval event', async () => {
+                        const approvalEvents = getEvents(tx, 'Approval');
+                        approvalEvents[0].owner.should.be.equal(recipient3);
+                        approvalEvents[0].spender.should.be.equal(anotherAccount);
+                        approvalEvents[0].value.should.be.bignumber.equal(0);
                     });
                 });
             });
@@ -260,11 +295,9 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
         });
 
         context('when paused', async () => {
-            before(async () => {
-                await mioTokenInstance.pause({from: owner});
-            });
-
             it('fails', async () => {
+                await mioTokenInstance.pause({from: owner});
+
                 await expectThrow(mioTokenInstance.transferFrom(owner, initialOwner, amount, {from: anotherAccount}));
             });
         });
@@ -281,8 +314,12 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
             });
 
             context('when spender has enough approved balance', async () => {
-                it('transfers the requested amount and emits event', async () => {
-                    const tx = await mioTokenInstance.transferFrom(owner, initialOwner, amount, {from: anotherAccount});
+                let tx;
+                before(async () => {
+                    tx = await mioTokenInstance.transferFrom(owner, initialOwner, amount, {from: anotherAccount});
+                });
+
+                it('transfers the requested amount', async () => {
                     const {blockNumber} = web3.eth;
 
                     (await mioTokenInstance.allowance(owner, anotherAccount)).should.be.bignumber.equal(0);
@@ -292,11 +329,13 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
 
                     (await mioTokenInstance.balanceOfAt(owner, blockNumber - 1)).should.be.bignumber.equal(totalSupply.sub(amount.mul(2)));
                     (await mioTokenInstance.balanceOfAt(initialOwner, blockNumber - 1)).should.be.bignumber.equal(0);
+                });
 
-                    const events = getEvents(tx);
-                    events.Transfer[0].from.should.be.equal(owner);
-                    events.Transfer[0].to.should.be.equal(initialOwner);
-                    events.Transfer[0].value.should.be.bignumber.equal(amount);
+                it('emits a transfer event', async () => {
+                    const transferEvents = getEvents(tx, 'Transfer');
+                    transferEvents[0].from.should.be.equal(owner);
+                    transferEvents[0].to.should.be.equal(initialOwner);
+                    transferEvents[0].value.should.be.bignumber.equal(amount);
                 });
             });
         });
@@ -308,58 +347,100 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
         });
 
         context('when paused', async () => {
-            before(async () => {
-                await mioTokenInstance.pause({from: owner});
-            });
-
             it('fails', async () => {
+                await mioTokenInstance.pause({from: owner});
+
                 await expectThrow(mioTokenInstance.increaseApproval(anotherAccount, 1, {from: owner}));
             });
         });
 
         context('when unpaused', async () => {
+            let tx;
             before(async () => {
                 await mioTokenInstance.unpause({from: owner});
+                tx = await mioTokenInstance.increaseApproval(anotherAccount, 1, {from: owner});
             });
 
-            it('increases allowance and emits event', async () => {
-                const tx = await mioTokenInstance.increaseApproval(anotherAccount, 1, {from: owner});
-
+            it('increases allowance', async () => {
                 (await mioTokenInstance.allowance(owner, anotherAccount)).should.be.bignumber.equal(amount.add(1));
+            });
 
-                const events = getEvents(tx);
-                events.Approval[0].owner.should.be.equal(owner);
-                events.Approval[0].spender.should.be.equal(anotherAccount);
-                events.Approval[0].value.should.be.bignumber.equal(amount.add(1));
+            it('emits an approval event', async () => {
+                const approvalEvents = getEvents(tx, 'Approval');
+                approvalEvents[0].owner.should.be.equal(owner);
+                approvalEvents[0].spender.should.be.equal(anotherAccount);
+                approvalEvents[0].value.should.be.bignumber.equal(amount.add(1));
             });
         });
     });
 
     describe('decreaseApproval', async () => {
         context('when paused', async () => {
-            before(async () => {
-                await mioTokenInstance.pause({from: owner});
-            });
-
             it('fails', async () => {
+                await mioTokenInstance.pause({from: owner});
+
                 await expectThrow(mioTokenInstance.decreaseApproval(anotherAccount, 1, {from: owner}));
             });
         });
 
         context('when unpaused', async () => {
+            let tx;
             before(async () => {
                 await mioTokenInstance.unpause({from: owner});
+                tx = await mioTokenInstance.decreaseApproval(anotherAccount, 1, {from: owner});
             });
 
-            it('decreases allowance and emits event', async () => {
-                const tx = await mioTokenInstance.decreaseApproval(anotherAccount, 1, {from: owner});
+            it('decreases allowance', async () => {
+                (await mioTokenInstance.allowance(owner, anotherAccount)).should.be.bignumber.equal(amount);
+            });
 
+            it('emits an approval event', async () => {
                 (await mioTokenInstance.allowance(owner, anotherAccount)).should.be.bignumber.equal(amount);
 
-                const events = getEvents(tx);
-                events.Approval[0].owner.should.be.equal(owner);
-                events.Approval[0].spender.should.be.equal(anotherAccount);
-                events.Approval[0].value.should.be.bignumber.equal(amount);
+                const approvalEvents = getEvents(tx, 'Approval');
+                approvalEvents[0].owner.should.be.equal(owner);
+                approvalEvents[0].spender.should.be.equal(anotherAccount);
+                approvalEvents[0].value.should.be.bignumber.equal(amount);
+            });
+        });
+    });
+
+    describe('burn', async () => {
+        context('when the amount to burn is greater than the balance', async () => {
+            it('fails', async () => {
+                await expectThrow(mioTokenInstance.burn(totalSupply, {from: owner}));
+            });
+        });
+
+        context('when the amount to burn is not greater than the balance', async () => {
+            let amount;
+            let tx;
+            before(async () => {
+                amount = await mioTokenInstance.balanceOf(owner);
+                tx = await mioTokenInstance.burn(amount, {from: owner});
+            });
+
+            it('burns the requested amount', async () => {
+                const {blockNumber} = web3.eth;
+
+                (await mioTokenInstance.totalSupplyAt(blockNumber)).should.be.bignumber.equal(totalSupply.sub(amount));
+                (await mioTokenInstance.totalSupplyAt(blockNumber - 1)).should.be.bignumber.equal(totalSupply);
+
+                (await mioTokenInstance.balanceOfAt(owner, blockNumber)).should.be.bignumber.equal(0);
+                (await mioTokenInstance.balanceOfAt(owner, blockNumber - 1)).should.be.bignumber.equal(amount);
+            });
+
+            it('emits a burn event', async () => {
+                const burnEvents = getEvents(tx, 'Burn');
+                burnEvents[0].burner.should.be.equal(owner);
+                burnEvents[0].value.should.be.bignumber.equal(amount);
+            });
+
+            it('emits a transfer event', async () => {
+                const transferEvents = getEvents(tx, 'Transfer');
+                transferEvents[0].from.should.be.equal(owner);
+                transferEvents[0].to.should.be.equal(zeroAddress);
+                transferEvents[0].value.should.be.bignumber.equal(amount);
             });
         });
     });
