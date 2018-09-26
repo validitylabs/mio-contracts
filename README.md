@@ -1,5 +1,46 @@
 # Mio Token
 
+## Deployment
+
+1.  Deploy MioToken and note the address.
+2.  Transfer ownership of MioToken contract to the owner's account by calling `mioTokenInstance.transferOwnership(address owner)`.
+3.  Mint the total supply by calling `mioTokenInstance.mint(address to, uint256 amount)`.
+4.  Allocate tokens to founders by calling `mioTokenInstance.multiSend(address[] beneficiaries, uint256[] amounts)`.
+
+## During Mio token's lifecycle
+
+###### Callable by the owner only:
+
+- Pause/unpause in case of an emergency:
+
+  - `mioTokenInstance.pause()`, `mioTokenInstance.unpause()`
+
+  **Note that the mioTokenInstance will be unpaused on deployment. When paused, all ERC-20 methods will not be callable**.
+
+- Recover ERC-20 tokens sent by mistake to the MioToken contract:
+
+  - `mioTokenInstance.reclaimToken(tokenAddress)`
+
+  The balance would be sent to the MioToken contract's owner. Then, the owner can transfer the recovered tokens to their respective owner.
+
+## Airdrops
+
+- Airdrops can be executed by calling `mioTokenInstance.multiSend(accounts, amounts)
+
+## Specifications
+
+###### Token
+
+- Basic ERC-20 token features.
+- Name: “Mio Token”.
+- Symbol: “#MIO”.
+- Decimals: 18.
+- Total supply: 1,000,000,000.
+- Mintable, burnable and pausable by owner.
+- Includes checkPoints and balanceOfAt features to allow the implementation of a voting mechanism.
+- Includes a multiSend method to facilitate the batch transfer of tokens.
+- Reclaimable token: allows the owner to recover any ERC20 token received. During the crowdsale period, the owner of the token is the crowdsale contract, therefore, it's convenient to reclaim tokens after the crowdsale has ended.
+
 ## Requirements
 The server side scripts requires NodeJS 8 to work properly.
 Go to [NVM](https://github.com/creationix/nvm) and follow the installation description.
