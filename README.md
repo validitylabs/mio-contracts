@@ -39,7 +39,7 @@
 - Mintable, burnable and pausable by owner.
 - Includes checkPoints and balanceOfAt features to allow the implementation of a voting mechanism.
 - Includes a multiSend method to facilitate the batch transfer of tokens.
-- Reclaimable token: allows the owner to recover any ERC20 token received. During the crowdsale period, the owner of the token is the crowdsale contract, therefore, it's convenient to reclaim tokens after the crowdsale has ended.
+- Reclaimable token: allows the owner to recover any ERC20 token received.
 
 ## Requirements
 The server side scripts requires NodeJS 8 to work properly.
