@@ -19,13 +19,13 @@
 
 - Recover ERC-20 tokens sent by mistake to the MioToken contract:
 
-  - `mioTokenInstance.reclaimToken(tokenAddress)`
+  - `mioTokenInstance.reclaimToken(address tokenAddress)`
 
   The balance would be sent to the MioToken contract's owner. Then, the owner can transfer the recovered tokens to their respective owner.
 
 ## Airdrops
 
-- Airdrops can be executed by calling `mioTokenInstance.multiSend(accounts, amounts)
+- Airdrops can be executed by calling `mioTokenInstance.multiSend(address[] beneficiaries, uint256[] amounts)`
 
 ## Specifications
 
