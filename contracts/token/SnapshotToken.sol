@@ -78,8 +78,7 @@ contract SnapshotToken is BurnableToken, MintableToken, PausableToken {
     /// @return True if the transfer was successful
     function transferFrom(address _from, address _to, uint256 _amount) public whenNotPaused returns (bool) {
         require(allowed[_from][msg.sender] >= _amount);
-
-        allowed[_from][msg.sender] -= _amount;
+        allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_amount);
         doTransfer(_from, _to, _amount);
         return true;
     }
@@ -124,14 +123,9 @@ contract SnapshotToken is BurnableToken, MintableToken, PausableToken {
     /// @return True if the tokens are generated correctly
     function mint(address _to, uint256 _amount) public hasMintPermission canMint returns (bool) {
         uint curTotalSupply = totalSupply();
-        require(curTotalSupply + _amount >= curTotalSupply); // Check for overflow
-
         uint previousBalanceTo = balanceOf(_to);
-        require(previousBalanceTo + _amount >= previousBalanceTo); // Check for overflow
-
-        updateValueAtNow(totalSupplyHistory, curTotalSupply + _amount);
-        updateValueAtNow(balances[_to], previousBalanceTo + _amount);
-
+        updateValueAtNow(totalSupplyHistory, curTotalSupply.add(_amount));
+        updateValueAtNow(balances[_to], previousBalanceTo.add(_amount));
         emit Mint(_to, _amount);
         emit Transfer(address(0), _to, _amount);
         return true;
@@ -139,13 +133,14 @@ contract SnapshotToken is BurnableToken, MintableToken, PausableToken {
 
     function burn(uint256 _amount) public {
         uint256 curTotalSupply = totalSupply();
-
         uint256 previousBalanceFrom = balanceOf(msg.sender);
         require(previousBalanceFrom >= _amount);
+        // no need to require value <= totalSupply, since that would imply the
+        // sender's balance is greater than the totalSupply, which *should* be an assertion failure
+        // mint method takes cares of updating both totalSupply and balanceOf[_to]
 
-        updateValueAtNow(totalSupplyHistory, curTotalSupply - _amount);
-        updateValueAtNow(balances[msg.sender], previousBalanceFrom - _amount);
-
+        updateValueAtNow(totalSupplyHistory, curTotalSupply.sub(_amount));
+        updateValueAtNow(balances[msg.sender], previousBalanceFrom.sub(_amount));
         emit Burn(msg.sender, _amount);
         emit Transfer(msg.sender, address(0), _amount);
     }
@@ -175,13 +170,12 @@ contract SnapshotToken is BurnableToken, MintableToken, PausableToken {
 
         // First update the balance array with the new value for the address
         // sending the tokens
-        updateValueAtNow(balances[_from], previousBalanceFrom - _amount);
+        updateValueAtNow(balances[_from], previousBalanceFrom.sub(_amount));
 
         // Then update the balance array with the new value for the address
         // receiving the tokens
         uint256 previousBalanceTo = balanceOfAt(_to, block.number);
-        require(previousBalanceTo + _amount >= previousBalanceTo); // Check for overflow
-        updateValueAtNow(balances[_to], previousBalanceTo + _amount);
+        updateValueAtNow(balances[_to], previousBalanceTo.add(_amount));
 
         // An event to make the transfer easy to find on the blockchain
         emit Transfer(_from, _to, _amount);

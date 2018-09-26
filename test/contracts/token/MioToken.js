@@ -444,4 +444,10 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
             });
         });
     });
+
+    describe('reclaimToken', async () => {
+
+    });
+
+    describe.skip('finishMinting,');
 });
