@@ -28,20 +28,20 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
     });
 
     describe('when instantiated', () => {
-        const NAME = 'Mio Token';
-        const SYMBOL = '#MIO';
-        const DECIMALS = 18;
+        const name = 'Mio Token';
+        const symbol = '#MIO';
+        const decimals = 18;
 
         it('has the right name', async () => {
-            (await mioTokenInstance.NAME()).should.be.equal(NAME);
+            (await mioTokenInstance.name()).should.be.equal(name);
         });
 
         it('has the right symbol', async () => {
-            (await mioTokenInstance.SYMBOL()).should.be.equal(SYMBOL);
+            (await mioTokenInstance.symbol()).should.be.equal(symbol);
         });
 
         it('has the right decimals', async () => {
-            (await mioTokenInstance.DECIMALS()).should.be.bignumber.equal(DECIMALS);
+            (await mioTokenInstance.decimals()).should.be.bignumber.equal(decimals);
         });
 
         it('has an owner', async () => {

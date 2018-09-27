@@ -12,7 +12,9 @@ import "./MultiSendToken.sol";
 
 
 contract MioToken is CanReclaimToken, SnapshotToken, MultiSendToken {
-    string public constant NAME = "Mio Token";
-    string public constant SYMBOL = "#MIO";
-    uint8 public constant DECIMALS = 18;
+    /* solhint-disable */
+    string public constant name = "Mio Token";
+    string public constant symbol = "#MIO";
+    uint8 public constant decimals = 18;
+    /* solhint-disable */
 }

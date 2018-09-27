@@ -4,8 +4,7 @@
 
 1.  Deploy MioToken and note the address.
 2.  Transfer ownership of MioToken contract to the owner's account by calling `mioTokenInstance.transferOwnership(address owner)`.
-3.  Mint the total supply by calling `mioTokenInstance.mint(address to, uint256 amount)`.
-4.  Allocate tokens to founders by calling `mioTokenInstance.multiSend(address[] beneficiaries, uint256[] amounts)`.
+3.  Mint tokens by calling `mioTokenInstance.mint(address to, uint256 amount)`.
 
 ## During Mio token's lifecycle
 
@@ -22,6 +21,12 @@
   - `mioTokenInstance.reclaimToken(address tokenAddress)`
 
   The balance would be sent to the MioToken contract's owner. Then, the owner can transfer the recovered tokens to their respective owner.
+
+- Stop the minting of tokens
+
+  - `mioTokenInstance.finishMinting()`
+
+  Once this function is called, there is no way back to mint any more tokens.
 
 ## Airdrops
 
