@@ -49,14 +49,14 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
         });
     });
 
-    describe('transferOwnership', async () => {
-        context('when called by a non-owner account', async () => {
+    describe('transferOwnership', () => {
+        context('when called by a non-owner account', () => {
             it('fails', async () => {
                 await expectThrow(mioTokenInstance.transferOwnership(anotherAccount, {from: anotherAccount}));
             });
         });
 
-        context('when called by the owner', async () => {
+        context('when called by the owner', () => {
             it('transfers ownership successfully', async () => {
                 await mioTokenInstance.transferOwnership(owner, {from: initialOwner});
 
@@ -65,14 +65,14 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
         });
     });
 
-    describe('mint', async () => {
-        context('when called by a non-owner account', async () => {
+    describe('mint', () => {
+        context('when called by a non-owner account', () => {
             it('fails', async () => {
                 await expectThrow(mioTokenInstance.mint(owner, totalSupply, {from: anotherAccount}));
             });
         });
 
-        context('when called by the owner account', async () => {
+        context('when called by the owner account', () => {
             let tx;
             let blockNum;
             before(async () => {
@@ -104,8 +104,8 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
         });
     });
 
-    describe('finishMinting', async () => {
-        context('when token minting hasn\'t finished', async () => {
+    describe('finishMinting', () => {
+        context('when token minting hasn\'t finished', () => {
             it('finishes token minting', async () => {
                 await mioTokenInstance.finishMinting({from: owner});
 
@@ -114,22 +114,22 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
             });
         });
 
-        context('when token minting had already finished', async () => {
+        context('when token minting had already finished', () => {
             it('fails', async () => {
                 await expectThrow(mioTokenInstance.finishMinting({from: owner}));
             });
         });
     });
 
-    describe('multiSend', async () => {
-        context('when the arrays have different length', async () => {
+    describe('multiSend', () => {
+        context('when the arrays have different length', () => {
             it('fails', async () => {
                 await expectThrow(mioTokenInstance.multiSend([recipient1, recipient2], [amount], {from: owner}));
             });
         });
 
-        context('when the arrays have the same length', async () => {
-            context('when paused', async () => {
+        context('when the arrays have the same length', () => {
+            context('when paused', () => {
                 it('fails', async () => {
                     await mioTokenInstance.pause({from: owner});
                     (await mioTokenInstance.paused()).should.equal(true);
@@ -138,8 +138,8 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
                 });
             });
 
-            context('when unpaused', async () => {
-                context('when the sender hasn\'t enough balance', async () => {
+            context('when unpaused', () => {
+                context('when the sender hasn\'t enough balance', () => {
                     it('fails', async () => {
                         await mioTokenInstance.unpause({from: owner});
                         (await mioTokenInstance.paused()).should.equal(false);
@@ -148,7 +148,7 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
                     });
                 });
 
-                context('when the sender has enough balance', async () => {
+                context('when the sender has enough balance', () => {
                     it('transfers amounts sucessfully', async () => {
                         await mioTokenInstance.multiSend([recipient1, recipient2], [amount, amount], {from: owner});
 
@@ -167,8 +167,8 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
         });
     });
 
-    describe('transfer', async () => {
-        context('when paused', async () => {
+    describe('transfer', () => {
+        context('when paused', () => {
             it('fails', async () => {
                 await mioTokenInstance.pause({from: owner});
 
@@ -177,35 +177,35 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
             });
         });
 
-        context('when unpaused', async () => {
+        context('when unpaused', () => {
             before(async () => {
                 await mioTokenInstance.unpause({from: owner});
             });
 
-            context('when the sender hasn\'t enough balance', async () => {
+            context('when the sender hasn\'t enough balance', () => {
                 it('fails', async () => {
                     await expectThrow(mioTokenInstance.transfer(recipient3, amount, {from: anotherAccount}));
                     (await mioTokenInstance.balanceOf(recipient3)).should.be.bignumber.equal(0);
                 });
             });
 
-            context('when the sender has enough balance', async () => {
-                context('when recipient is zero address', async () => {
+            context('when the sender has enough balance', () => {
+                context('when recipient is zero address', () => {
                     it('fails', async () => {
                         await expectThrow(mioTokenInstance.transfer(zeroAddress, amount, {from: recipient1}));
                         (await mioTokenInstance.balanceOf(zeroAddress)).should.be.bignumber.equal(0);
                     });
                 });
 
-                context('when recipient is the token contract', async () => {
+                context('when recipient is the token contract', () => {
                     it('fails', async () => {
                         await expectThrow(mioTokenInstance.transfer(mioTokenInstance.address, amount, {from: recipient1}));
                         (await mioTokenInstance.balanceOf(mioTokenInstance.address)).should.be.bignumber.equal(0);
                     });
                 });
 
-                context('when recipient is different to zero address and the token contract', async () => {
-                    context('when amount is zero', async () => {
+                context('when recipient is different to zero address and the token contract', () => {
+                    context('when amount is zero', () => {
                         it('emits a transfer event', async () => {
                             const tx = await mioTokenInstance.transfer(recipient3, 0, {from: recipient1});
                             const transferEvents = getEvents(tx, 'Transfer');
@@ -216,7 +216,7 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
                         });
                     });
 
-                    context('when amount is different to zero', async () => {
+                    context('when amount is different to zero', () => {
                         let tx;
                         let blockNum;
                         before(async () => {
@@ -245,8 +245,8 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
         });
     });
 
-    describe('approve', async () => {
-        context('when paused', async () => {
+    describe('approve', () => {
+        context('when paused', () => {
             it('fails', async () => {
                 await mioTokenInstance.pause({from: owner});
 
@@ -254,11 +254,11 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
             });
         });
 
-        context('when unpaused', async () => {
+        context('when unpaused', () => {
             before(async () => {
                 await mioTokenInstance.unpause({from: owner});
             });
-            context('when spender has no previous approved amount', async () => {
+            context('when spender has no previous approved amount', () => {
                 let tx;
                 before(async () => {
                     tx = await mioTokenInstance.approve(anotherAccount, 1, {from: recipient3});
@@ -276,8 +276,8 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
                 });
             });
 
-            context('when spender has an approved amount', async () => {
-                context('when trying to approve a new amount', async () => {
+            context('when spender has an approved amount', () => {
+                context('when trying to approve a new amount', () => {
                     it('fails', async () => {
                         await expectThrow(mioTokenInstance.approve(anotherAccount, amount, {from: recipient3}));
 
@@ -285,7 +285,7 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
                     });
                 });
 
-                context('when new amount is zero', async () => {
+                context('when new amount is zero', () => {
                     let tx;
                     before(async () => {
                         tx = await mioTokenInstance.approve(anotherAccount, 0, {from: recipient3});
@@ -306,12 +306,12 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
         });
     });
 
-    describe('transferFrom', async () => {
+    describe('transferFrom', () => {
         before(async () => {
             await mioTokenInstance.approve(anotherAccount, amount, {from: owner});
         });
 
-        context('when paused', async () => {
+        context('when paused', () => {
             it('fails', async () => {
                 await mioTokenInstance.pause({from: owner});
 
@@ -319,18 +319,18 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
             });
         });
 
-        context('when unpaused', async () => {
+        context('when unpaused', () => {
             before(async () => {
                 await mioTokenInstance.unpause({from: owner});
             });
 
-            context('when spender hasn\'t enough approved balance', async () => {
+            context('when spender hasn\'t enough approved balance', () => {
                 it('fails', async () => {
                     await expectThrow(mioTokenInstance.transferFrom(owner, initialOwner, amount + 1, {from: anotherAccount}));
                 });
             });
 
-            context('when spender has enough approved balance', async () => {
+            context('when spender has enough approved balance', () => {
                 let tx;
                 let blockNum;
                 before(async () => {
@@ -358,12 +358,12 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
         });
     });
 
-    describe('increaseApproval', async () => {
+    describe('increaseApproval', () => {
         before(async () => {
             await mioTokenInstance.approve(anotherAccount, amount, {from: owner});
         });
 
-        context('when paused', async () => {
+        context('when paused', () => {
             it('fails', async () => {
                 await mioTokenInstance.pause({from: owner});
 
@@ -371,7 +371,7 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
             });
         });
 
-        context('when unpaused', async () => {
+        context('when unpaused', () => {
             let tx;
             before(async () => {
                 await mioTokenInstance.unpause({from: owner});
@@ -391,8 +391,8 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
         });
     });
 
-    describe('decreaseApproval', async () => {
-        context('when paused', async () => {
+    describe('decreaseApproval', () => {
+        context('when paused', () => {
             it('fails', async () => {
                 await mioTokenInstance.pause({from: owner});
 
@@ -400,7 +400,7 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
             });
         });
 
-        context('when unpaused', async () => {
+        context('when unpaused', () => {
             let tx;
             before(async () => {
                 await mioTokenInstance.unpause({from: owner});
@@ -422,14 +422,14 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
         });
     });
 
-    describe('burn', async () => {
-        context('when the amount to burn is greater than the balance', async () => {
+    describe('burn', () => {
+        context('when the amount to burn is greater than the balance', () => {
             it('fails', async () => {
                 await expectThrow(mioTokenInstance.burn(totalSupply, {from: owner}));
             });
         });
 
-        context('when the amount to burn is not greater than the balance', async () => {
+        context('when the amount to burn is not greater than the balance', () => {
             let amount;
             let tx;
             let blockNum;
@@ -462,7 +462,7 @@ contract('MioToken', ([initialOwner, owner, recipient1, recipient2, recipient3, 
         });
     });
 
-    describe('reclaimToken', async () => {
+    describe('reclaimToken', () => {
         let anotherTokenInstance;
         let blockNum;
         before(async () => {

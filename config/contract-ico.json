@@ -1,6 +1,6 @@
 {
     "tests": [
-        // "test/contracts/token/MioToken.js"
-        "test/contracts/vault/FoundersVault.js"
+        "test/contracts/token/MioToken.js",
+        "test/contracts/vault/TokenVault.js"
     ]
 }

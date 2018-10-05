@@ -143,22 +143,27 @@ export function increaseTimeTo(target) {
 }
 
 export const duration = {
-    seconds: (val) => {
+    seconds: function (val) {
         return val;
     },
-    minutes: (val) => {
+    minutes: function (val) {
         return val * this.seconds(60);
     },
-    hours: (val) => {
+    hours: function (val) {
         return val * this.minutes(60);
     },
-    days: (val) => {
+    days: function (val) {
         return val * this.hours(24);
     },
-    weeks: (val) => {
+    weeks: function (val) {
         return val * this.days(7);
     },
-    years: (val) => {
+    years: function (val) {
         return val * this.days(365);
     }
 };
+
+// Returns the time of the last mined block in seconds
+export function latestTime() {
+    return web3.eth.getBlock('latest').timestamp;
+}

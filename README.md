@@ -5,6 +5,8 @@
 1.  Deploy MioToken and note the address.
 2.  Transfer ownership of MioToken contract to the owner's account by calling `mioTokenInstance.transferOwnership(address owner)`.
 3.  Mint tokens by calling `mioTokenInstance.mint(address to, uint256 amount)`.
+4.  Deploy TokenVault contract and note the address.
+5.  Transfer ownership of TokenVault contract to the owner's account by calling `tokenVaultInstance.transferOwnership(address owner)`.
 
 ## During Mio token's lifecycle
 
@@ -28,9 +30,9 @@
 
   Once this function is called, there is no way back to mint any more tokens.
 
-## Airdrops
+## Transfer to multiple accounts / airdrops
 
-- Airdrops can be executed by calling `mioTokenInstance.multiSend(address[] beneficiaries, uint256[] amounts)`
+- This can be executed by calling `mioTokenInstance.multiSend(address[] beneficiaries, uint256[] amounts)`
 
 ## Specifications
 
@@ -45,6 +47,10 @@
 - Includes checkPoints and balanceOfAt features to allow the implementation of a voting mechanism.
 - Includes a multiSend method to facilitate the batch transfer of tokens.
 - Reclaimable token: allows the owner to recover any ERC20 token received.
+
+###### Vault
+
+- Each token holder can lock an amount of tokens by calling `tokenVaultInstance.addBalance(uint256 amount`).
 
 ## Requirements
 The server side scripts requires NodeJS 8 to work properly.

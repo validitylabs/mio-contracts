@@ -3,7 +3,8 @@
     "recurseDepth": 10,
     "source": {
         "include": [
-            "test/contracts/token/MioToken.js"
+            "test/contracts/token/MioToken.js",
+            "test/contracts/vault/TokenVault.js"
         ]
     },
     "opts": {
