@@ -3,10 +3,10 @@
 ## Deployment
 
 1.  Deploy MioToken and note the address.
-2.  Transfer ownership of MioToken contract to the owner's account by calling `mioTokenInstance.transferOwnership(address owner)`.
-3.  Mint tokens by calling `mioTokenInstance.mint(address to, uint256 amount)`.
+2.  Transfer ownership of MioToken contract to the owner's account by calling `mioTokenInstance.transferOwnership(ownerAddress)`.
+3.  Mint tokens by calling `mioTokenInstance.mint(receiverAddress, amount)`.
 4.  Deploy TokenVault contract and note the address.
-5.  Transfer ownership of TokenVault contract to the owner's account by calling `tokenVaultInstance.transferOwnership(address owner)`.
+5.  Transfer ownership of TokenVault contract to the owner's account by calling `tokenVaultInstance.transferOwnership(ownerAddress )`.
 
 ## During Mio token's lifecycle
 
@@ -20,7 +20,7 @@
 
 - Recover ERC-20 tokens sent by mistake to the MioToken contract:
 
-  - `mioTokenInstance.reclaimToken(address tokenAddress)`
+  - `mioTokenInstance.reclaimToken(anotherTokenAddress)`
 
   The balance would be sent to the MioToken contract's owner. Then, the owner can transfer the recovered tokens to their respective owner.
 
@@ -32,7 +32,7 @@
 
 ## Transfer to multiple accounts / airdrops
 
-- This can be executed by calling `mioTokenInstance.multiSend(address[] beneficiaries, uint256[] amounts)`
+- This can be executed by calling `mioTokenInstance.multiSend(receiversAddresses, amounts)`
 
 ## Specifications
 
@@ -48,9 +48,17 @@
 - Includes a multiSend method to facilitate the batch transfer of tokens.
 - Reclaimable token: allows the owner to recover any ERC20 token received.
 
-###### Vault
+###### Token Vault
 
-- Each token holder can lock an amount of tokens by calling `tokenVaultInstance.addBalance(uint256 amount`).
+**Note that the Token Vault contract would transfer the specified amount from the token holder's account to itself. This means, the token holder would first need to approve the vault contract to execute this transfer. This can be done by calling `mioTokenInstance.approve(vaultContractInstanceAddress, amount)`**.
+
+- A token holder can lock an amount of tokens by calling `tokenVaultInstance.addBalance(amount`). The tokens would be transferred from the holder and locked with his/her account as the beneficiary of the released tokens.
+
+- A token holder can lock an amount of tokens for a different account by calling `tokenVaultInstance.addBalanceFor(beneficiaryAddress, amount`). The tokens would be transferred from the holder and locked for the specified account as the beneficiary of the released tokens.
+
+- Each beneficiary can release his/her unlocked tokens by calling `tokenVaultInstance.release()` after the release time.
+
+- Anyone can release tokens for an specific account by calling `tokenVaultInstance.releaseFor(beneficiaryAddress)` or for a number of accounts in just one call with `tokenVaultInstance.batchRelease(beneficiariesAddresses)`.
 
 ## Requirements
 The server side scripts requires NodeJS 8 to work properly.
