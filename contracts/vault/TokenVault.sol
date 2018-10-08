@@ -31,37 +31,21 @@ contract TokenVault is Ownable {
     }
 
     /**
-     * @notice To be called by the account that holds Mio tokens. The caller needs to first approve this vault to
-     * transfer tokens on its behalf.
-     * The tokens to be locked will be transfered from the caller's account to this vault.
-     * The 'value' will be added to the balance of 'account' in this contract.
-     * @dev Allows a token holder to add to a another account's balance of locked tokens.
-     * @param account Address that will have a balance of locked tokens.
-     * @param value Amount of tokens to be locked in this vault.
+     * @dev Allows the transfer of unlocked tokens to a set of beneficiaries' addresses.
+     * @param beneficiaries Array of beneficiaries' addresses that will receive the unlocked tokens.
      */
-    function addBalanceFor(address account, uint256 value) public {
-        if (lockedBalances[account] == 0) {
-            lockedBalances[account] = value;
-        } else {
-            lockedBalances[account] = lockedBalances[account].add(value);
+    function batchRelease(address[] beneficiaries) external {
+        uint256 length = beneficiaries.length;
+        for (uint256 i = 0; i < length; i++) {
+            releaseFor(beneficiaries[i]);
         }
-        token.safeTransferFrom(msg.sender, address(this), value);
     }
 
     /**
-     * @dev Allows a token holder to add to his/her balance of locked tokens.
-     * @param value Amount of tokens to be locked in this vault.
+     * @dev Allows the caller to transfer unlocked tokens his/her account.
      */
-    function addBalance(uint256 value) public {
-        addBalanceFor(msg.sender, value);
-    }
-
-     /**
-    * @dev Gets the beneficiary's locked token balance
-    * @param account Address of the beneficiary
-    */
-    function getLockedBalance(address account) public view returns (uint256) {
-        return lockedBalances[account];
+    function release() public {
+        releaseFor(msg.sender);
     }
 
     /**
@@ -77,21 +61,33 @@ contract TokenVault is Ownable {
     }
 
     /**
-     * @dev Allows the caller to transfer unlocked tokens his/her account.
+     * @dev Allows a token holder to add to his/her balance of locked tokens.
+     * @param value Amount of tokens to be locked in this vault.
      */
-    function release() public {
-        releaseFor(msg.sender);
+    function addBalance(uint256 value) public {
+        addBalanceFor(msg.sender, value);
     }
 
     /**
-     * @dev Allows the transfer of unlocked tokens to a set of beneficiaries' addresses.
-     * @param beneficiaries Array of beneficiaries' addresses that will receive the unlocked tokens.
+     * @notice To be called by the account that holds Mio tokens. The caller needs to first approve this vault to
+     * transfer tokens on its behalf.
+     * The tokens to be locked will be transfered from the caller's account to this vault.
+     * The 'value' will be added to the balance of 'account' in this contract.
+     * @dev Allows a token holder to add to a another account's balance of locked tokens.
+     * @param account Address that will have a balance of locked tokens.
+     * @param value Amount of tokens to be locked in this vault.
      */
-    function batchRelease(address[] beneficiaries) public {
-        uint256 length = beneficiaries.length;
-        for (uint256 i = 0; i < length; i++) {
-            releaseFor(beneficiaries[i]);
-        }
+    function addBalanceFor(address account, uint256 value) public {
+        lockedBalances[account] = lockedBalances[account].add(value);
+        token.safeTransferFrom(msg.sender, address(this), value);
+    }
+
+     /**
+    * @dev Gets the beneficiary's locked token balance
+    * @param account Address of the beneficiary
+    */
+    function getLockedBalance(address account) public view returns (uint256) {
+        return lockedBalances[account];
     }
 }
 
