@@ -89,7 +89,6 @@ contract TokenVault is Ownable {
      */
     function batchRelease(address[] beneficiaries) public {
         uint256 length = beneficiaries.length;
-        // @TODO: releaseTime check is done in each loop. Test for gas optimisation.
         for (uint256 i = 0; i < length; i++) {
             releaseFor(beneficiaries[i]);
         }
