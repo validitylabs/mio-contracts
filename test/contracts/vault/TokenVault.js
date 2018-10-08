@@ -17,7 +17,7 @@ require('chai')
 /**
  * TokenVault contract
  */
-contract('TokenVault', ([initialOwner, owner, beneficiary1, beneficiary2, beneficiary3, beneficiary4, anotherAccount]) => {
+contract('TokenVault', ([owner, beneficiary1, beneficiary2, beneficiary3, beneficiary4, anotherAccount]) => {
     const amount = new BigNumber(10);
 
     let realeaseTime;
@@ -27,9 +27,9 @@ contract('TokenVault', ([initialOwner, owner, beneficiary1, beneficiary2, benefi
     describe('deployment', () => {
         before(async () => {
             mioTokenInstance = await MioToken.new();
-            await mioTokenInstance.mint(beneficiary1, amount * 3, {from: initialOwner});
-            await mioTokenInstance.mint(beneficiary3, amount, {from: initialOwner});
-            await mioTokenInstance.mint(beneficiary4, amount, {from: initialOwner});
+            await mioTokenInstance.mint(beneficiary1, amount * 3, {from: owner});
+            await mioTokenInstance.mint(beneficiary3, amount, {from: owner});
+            await mioTokenInstance.mint(beneficiary4, amount, {from: owner});
         });
         context('when release time is in the past', () => {
             let pastRealeaseTime;
@@ -55,24 +55,6 @@ contract('TokenVault', ([initialOwner, owner, beneficiary1, beneficiary2, benefi
             it('has a state', async () => {
                 (await tokenVaultInstance.token()).should.equal(mioTokenInstance.address);
                 (await tokenVaultInstance.releaseTime()).should.be.bignumber.equal(realeaseTime);
-            });
-        });
-    });
-
-    describe('transferOwnership', () => {
-        context('when called by a non-owner account', () => {
-            it('fails', async () => {
-                await expectThrow(tokenVaultInstance.transferOwnership(anotherAccount, {from: anotherAccount}));
-            });
-        });
-
-        context('when called by the owner', () => {
-            before(async () => {
-                await tokenVaultInstance.transferOwnership(owner, {from: initialOwner});
-            });
-
-            it('transfers ownership successfully', async () => {
-                (await tokenVaultInstance.owner()).should.equal(owner);
             });
         });
     });
@@ -138,7 +120,7 @@ contract('TokenVault', ([initialOwner, owner, beneficiary1, beneficiary2, benefi
 
             context('when the specified beneficiary has no locked balance', () => {
                 it('fails', async () => {
-                    await expectThrow(tokenVaultInstance.releaseFor(anotherAccount, {from: initialOwner}));
+                    await expectThrow(tokenVaultInstance.releaseFor(anotherAccount, {from: owner}));
                 });
             });
 

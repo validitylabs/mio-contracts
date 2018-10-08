@@ -6,7 +6,6 @@
 2.  Transfer ownership of MioToken contract to the owner's account by calling `mioTokenInstance.transferOwnership(ownerAddress)`.
 3.  Mint tokens by calling `mioTokenInstance.mint(receiverAddress, amount)`.
 4.  Deploy TokenVault contract and note the address.
-5.  Transfer ownership of TokenVault contract to the owner's account by calling `tokenVaultInstance.transferOwnership(ownerAddress )`.
 
 ## During Mio token's lifecycle
 

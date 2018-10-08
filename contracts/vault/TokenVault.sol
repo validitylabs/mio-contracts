@@ -6,12 +6,11 @@
 
 pragma solidity ^0.4.24;  // solhint-disable-line
 
-import "../../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "../../node_modules/openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
 
 
-contract TokenVault is Ownable {
+contract TokenVault {
     using SafeERC20 for ERC20;
     using SafeMath for uint256;
 
